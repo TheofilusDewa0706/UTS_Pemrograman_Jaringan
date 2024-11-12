@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Dashboard Streamer</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 20px;
+			background-image: url('gambar/bg-pokemon.jpg');
+			color: #333;
+		}
+
+		h1 {
+			text-align: center;
+			color: #4CAF50;
+		}
+
+		#donations {
+			max-width: 500px;
+			margin: 0 auto;
+			padding: 10px;
+			background-color: #fff;
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+			max-height: 400px;
+			overflow-y: auto;
+		}
+
+		.donation {
+			padding: 10px;
+			margin: 5px 0;
+			border-bottom: 1px solid #eee;
+			animation: fadeIn 0.5s ease;
+		}
+
+		.donation:last-child {
+			border-bottom: none;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Pesan Donasi</h1>
+	<div id="donations"></div>
+
+	<script>
+		const donationsDiv = document.getElementById("donations");
+		const socket = new WebSocket("ws://localhost:3000/ws");
+
+		socket.onmessage = function (event) {
+			const data = JSON.parse(event.data);
+
+			// Memastikan bahwa nominal adalah angka
+			if (isNaN(data.amount)) {
+				console.error("Nominal donasi tidak valid:", data.amount);
+				return; // Mengabaikan pesan jika nominal bukan angka
+			}
+
+			// Membuat elemen baru untuk pesan donasi
+			const donationElement = document.createElement("div");
+			donationElement.className = "donation";
+			donationElement.textContent = `${data.message} | Nominal: Rp${data.amount}`;
+
+			// Menambahkan elemen pesan donasi ke dalam div
+			donationsDiv.appendChild(donationElement);
+
+			// Memastikan hanya 10 pesan terbaru yang ditampilkan
+			if (donationsDiv.childNodes.length > 10) {
+				donationsDiv.removeChild(donationsDiv.firstChild);
+			}
+		};
+
+		socket.onopen = function () {
+			console.log("Terhubung ke server WebSocket.");
+		};
+
+		socket.onerror = function (error) {
+			console.error("Kesalahan WebSocket:", error);
+		};
+
+		socket.onclose = function (event) {
+			console.log("Koneksi WebSocket ditutup:", event);
+		};
+	</script>
+</body>
+
+</html>
